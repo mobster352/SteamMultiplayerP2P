@@ -1,0 +1,92 @@
+[gd_scene format=3 uid="uid://dc5dj5vacjgxr"]
+
+[ext_resource type="Script" uid="uid://cjimfcb6godel" path="res://scripts/lobby.gd" id="1_o1atq"]
+
+[node name="Lobby" type="Control" unique_id=2134166184]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_o1atq")
+
+[node name="HostLobbyButton" type="Button" parent="." unique_id=1203776269]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "Host Lobby"
+
+[node name="JoinLobbyCode" type="LineEdit" parent="." unique_id=1891812336]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 48.0
+offset_right = 68.5
+offset_bottom = 79.0
+
+[node name="JoinLobbyButton" type="Button" parent="." unique_id=884476935]
+layout_mode = 0
+offset_left = 88.0
+offset_top = 48.0
+offset_right = 177.0
+offset_bottom = 79.0
+text = "Join Lobby"
+
+[node name="LobbyCode" type="Label" parent="." unique_id=29589406]
+layout_mode = 0
+offset_left = 256.0
+offset_right = 347.0
+offset_bottom = 23.0
+text = "Lobby Code"
+
+[node name="LobbyCodeLabel" type="Label" parent="." unique_id=939682805]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 256.0
+offset_top = 24.0
+offset_right = 311.0
+offset_bottom = 47.0
+
+[node name="Players" type="Label" parent="." unique_id=627721715]
+layout_mode = 0
+offset_left = 256.0
+offset_top = 72.0
+offset_right = 313.0
+offset_bottom = 95.0
+text = "Players"
+
+[node name="HSeparator" type="HSeparator" parent="." unique_id=1203331440]
+layout_mode = 0
+offset_left = 256.0
+offset_top = 104.0
+offset_right = 320.0
+offset_bottom = 108.0
+
+[node name="ConnectedPlayers" type="VBoxContainer" parent="." unique_id=694488934]
+layout_mode = 0
+offset_left = 256.0
+offset_top = 112.0
+offset_right = 296.0
+offset_bottom = 162.0
+
+[node name="Player1" type="Label" parent="ConnectedPlayers" unique_id=300393081]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Player2" type="Label" parent="ConnectedPlayers" unique_id=990045504]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StartGameButton" type="Button" parent="." unique_id=569314820]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 392.0
+offset_top = 72.0
+offset_right = 488.0
+offset_bottom = 103.0
+text = "Start Game"
+
+[connection signal="pressed" from="HostLobbyButton" to="." method="_on_host_lobby_button_pressed"]
+[connection signal="pressed" from="JoinLobbyButton" to="." method="_on_join_lobby_button_pressed"]
+[connection signal="pressed" from="StartGameButton" to="." method="_on_start_game_button_pressed"]

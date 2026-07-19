@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://ddothv46uhrgu"]
+
+[ext_resource type="Script" uid="uid://dr1xw0y5ox1eo" path="res://scripts/player.gd" id="1_3vyb7"]
+[ext_resource type="Script" uid="uid://h4a4cn8w5cfo" path="res://scripts/multiplayer_input.gd" id="2_g2els"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_g2els"]
+properties/0/path = NodePath(".:player_id")
+properties/0/spawn = true
+properties/0/replication_mode = 0
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:do_jump")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:_is_on_floor")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+properties/4/path = NodePath(".:input_dir")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3vyb7"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_u8vuu"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_3vyb7"]
+properties/0/path = NodePath("MultiplayerInput:input_direction")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+
+[node name="Player" type="CharacterBody3D" unique_id=1004972859]
+script = ExtResource("1_3vyb7")
+
+[node name="PlayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1466191936]
+replication_config = SubResource("SceneReplicationConfig_g2els")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1963816243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_3vyb7")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2061053271]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_u8vuu")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=2036869338]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.98603094, 0.16656224, 0, -0.16656224, 0.98603094, 0.5, 2.067, 2.241)
+
+[node name="MultiplayerInput" type="MultiplayerSynchronizer" parent="." unique_id=936677194]
+unique_name_in_owner = true
+replication_config = SubResource("SceneReplicationConfig_3vyb7")
+script = ExtResource("2_g2els")
