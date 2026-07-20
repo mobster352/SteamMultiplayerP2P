@@ -8,8 +8,10 @@ extends Control
 @onready var player_2: Label = %Player2
 @onready var start_game_button: Button = %StartGameButton
 
-
-const SERVER_IP:String = "192.168.0.100"
+#Google server
+const SERVER_IP:String = "35.196.2.247"
+#Local server
+#const SERVER_IP:String = "192.168.0.100"
 const SERVER_PORT:int = 7000
 
 var lobby_owner_id: int
