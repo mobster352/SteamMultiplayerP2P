@@ -2,13 +2,18 @@
 
 [ext_resource type="PackedScene" uid="uid://dc5dj5vacjgxr" path="res://scenes/lobby.tscn" id="1_uwrxv"]
 [ext_resource type="Script" uid="uid://c5a87corj7rvt" path="res://scripts/game.gd" id="1_yqjtg"]
+[ext_resource type="PackedScene" uid="uid://c5kywus2m11fm" path="res://scenes/player_disconnected_banner.tscn" id="3_lnu2h"]
 
 [node name="Game" type="Node" unique_id=1579699836]
 script = ExtResource("1_yqjtg")
 
-[node name="Lobby" parent="." unique_id=2134166184 node_paths=PackedStringArray("game") instance=ExtResource("1_uwrxv")]
+[node name="Lobby" parent="." unique_id=2134166184 node_paths=PackedStringArray("game", "player_disconnected_banner") instance=ExtResource("1_uwrxv")]
 unique_name_in_owner = true
 game = NodePath("..")
+player_disconnected_banner = NodePath("../PlayerDisconnectedBanner")
+
+[node name="PlayerDisconnectedBanner" parent="." unique_id=393588729 instance=ExtResource("3_lnu2h")]
+visible = false
 
 [node name="Level" type="Node3D" parent="." unique_id=1124768348]
 unique_name_in_owner = true

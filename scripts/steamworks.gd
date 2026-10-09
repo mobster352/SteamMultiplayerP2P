@@ -34,9 +34,12 @@ func connect_to_steam_server(ip:String, port:int, _create:bool) -> void:
 		return
 	multiplayer.multiplayer_peer = steam_peer
 	
-	multiplayer.connected_to_server.connect(_connected_to_server)
-	multiplayer.connection_failed.connect(_connection_failed)
-	multiplayer.server_disconnected.connect(_server_disconnected)
+	if not multiplayer.connected_to_server.is_connected(_connected_to_server):
+		multiplayer.connected_to_server.connect(_connected_to_server)
+	if not multiplayer.connection_failed.is_connected(_connection_failed):
+		multiplayer.connection_failed.connect(_connection_failed)
+	if not multiplayer.server_disconnected.is_connected(_server_disconnected):
+		multiplayer.server_disconnected.connect(_server_disconnected)
 	
 	print("Connecting to server...")
 	create = _create

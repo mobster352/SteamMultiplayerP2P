@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://c5kywus2m11fm"]
+
+[ext_resource type="Script" uid="uid://bja00x6le2upx" path="res://scripts/player_disconnected_banner.gd" id="1_fbjm6"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_xjhkn"]
+font_size = 32
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+
+[node name="PlayerDisconnectedBanner" type="Control" unique_id=393588729 node_paths=PackedStringArray("label")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fbjm6")
+label = NodePath("Label")
+
+[node name="Label" type="Label" parent="." unique_id=1087137021]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -304.0
+offset_top = -196.0
+offset_right = 308.0
+offset_bottom = -132.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Player has disconnected from the game"
+label_settings = SubResource("LabelSettings_xjhkn")
