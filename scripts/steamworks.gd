@@ -1,16 +1,14 @@
 class_name Steamworks
 extends Node
 
-signal create_lobby
-signal join_lobby
+signal connected_to_steam_server
 
 const APP_ID:int = 480
 
-var lobby_id:int
-var lobby_code:String
+var lobby_id:int = 0
+var lobby_code:String = ""
 
 var connected:bool
-var create:bool
 
 func _init() -> void:
 	OS.set_environment("SteamAppId", str(APP_ID))
@@ -26,7 +24,7 @@ func _ready() -> void:
 		print("Steam Initialized")
 
 
-func connect_to_steam_server(ip:String, port:int, _create:bool) -> void:
+func connect_to_steam_server(ip:String, port:int) -> void:
 	var steam_peer:ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 	var error := steam_peer.create_client(ip, port)
 	if error != OK:
@@ -42,15 +40,11 @@ func connect_to_steam_server(ip:String, port:int, _create:bool) -> void:
 		multiplayer.server_disconnected.connect(_server_disconnected)
 	
 	print("Connecting to server...")
-	create = _create
 	
 func _connected_to_server() -> void:
 	print("Connected to Steam Server")
 	connected = true
-	if create:
-		create_lobby.emit()
-	else:
-		join_lobby.emit()
+	connected_to_steam_server.emit()
 	
 func _connection_failed() -> void:
 	push_error("Steam Server connection failed")

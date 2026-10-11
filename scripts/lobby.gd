@@ -8,6 +8,7 @@ extends Control
 @onready var player_1: Label = %Player1
 @onready var player_2: Label = %Player2
 @onready var start_game_button: Button = %StartGameButton
+@onready var leave_lobby_button: Button = %LeaveLobbyButton
 
 #Google server
 #const SERVER_IP:String = "35.196.2.247"
@@ -20,7 +21,6 @@ var lobby_owner: String
 
 var steam_peer:SteamMultiplayerPeer
 
-
 func _ready() -> void:
 	if OS.has_feature("dedicated_server"):
 		return
@@ -28,25 +28,45 @@ func _ready() -> void:
 	Steam.lobby_joined.connect(_lobby_joined)
 	Steam.lobby_chat_update.connect(_lobby_chat_update)
 	Steam.lobby_game_created.connect(_lobby_game_created)
-	SteamworksBootstrap.steamworks.create_lobby.connect(_create_lobby)
-	SteamworksBootstrap.steamworks.join_lobby.connect(_join_lobby)
+	SteamworksBootstrap.steamworks.connected_to_steam_server.connect(connected_to_steam_server)
 	NetworkManager.update_lobby_code.connect(_update_lobby_code)
 	NetworkManager.join_host_lobby.connect(_join_host_lobby)
 	NetworkManager.load_game.connect(_load_game)
 
 
+func _on_multiplayer_button_pressed() -> void:
+	if not SteamworksBootstrap.steamworks.connected:
+		SteamworksBootstrap.steamworks.connect_to_steam_server(SERVER_IP, SERVER_PORT)
+
+
+func connected_to_steam_server() -> void:
+	if SteamworksBootstrap.steamworks.lobby_code:
+		NetworkManager.close_lobby.rpc_id(1, SteamworksBootstrap.steamworks.lobby_code)
+		SteamworksBootstrap.steamworks.lobby_id = 0
+		SteamworksBootstrap.steamworks.lobby_code = ""
+
+
+func is_in_steam_lobby() -> bool:
+	if multiplayer.multiplayer_peer and multiplayer.multiplayer_peer is SteamMultiplayerPeer:
+		return multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
+	return false
+
+
+func is_in_lobby() -> bool:
+	return SteamworksBootstrap.steamworks.lobby_id > 0
+
+
 func _on_host_lobby_button_pressed() -> void:
 	if not SteamworksBootstrap.steamworks.connected:
-		SteamworksBootstrap.steamworks.connect_to_steam_server(SERVER_IP, SERVER_PORT, true)
-	else:
-		Steam.createLobby(Steam.LobbyType.LOBBY_TYPE_PRIVATE)
+		return
+	Steam.createLobby(Steam.LobbyType.LOBBY_TYPE_PRIVATE)
 
 
 func _on_join_lobby_button_pressed() -> void:
 	if not SteamworksBootstrap.steamworks.connected:
-		SteamworksBootstrap.steamworks.connect_to_steam_server(SERVER_IP, SERVER_PORT, false)
-	else:
-		_join_lobby()
+		return
+	if join_lobby_code.text:
+		NetworkManager.find_lobby.rpc_id(1, multiplayer.multiplayer_peer.get_unique_id(), join_lobby_code.text)
 
 
 func _on_start_game_button_pressed() -> void:
@@ -64,11 +84,11 @@ func _on_start_game_button_pressed() -> void:
 	hide()
 
 
-func _lobby_created(result:int, lobby_id:int) -> void:
-	print("result: ", result)
+func _lobby_created(_result:int, lobby_id:int) -> void:
 	SteamworksBootstrap.steamworks.lobby_id = lobby_id
 	NetworkManager.create_lobby_code.rpc_id(1, multiplayer.multiplayer_peer.get_unique_id(), lobby_id)
 	start_game_button.show()
+	leave_lobby_button.show()
 
 
 func _lobby_joined(lobby_id:int, _permissions:int, _locked:bool, _response:int) -> void:
@@ -81,6 +101,7 @@ func _lobby_joined(lobby_id:int, _permissions:int, _locked:bool, _response:int) 
 		player_1.text = lobby_owner
 		player_2.text = Steam.getFriendPersonaName(Steam.getSteamID())
 		NetworkManager.has_game_started.rpc_id(1, multiplayer.multiplayer_peer.get_unique_id(), SteamworksBootstrap.steamworks.lobby_code, lobby_owner_id)
+	leave_lobby_button.show()
 
 
 func _lobby_chat_update(lobby_id:int, changed_id:int, _making_change_id:int, chat_state:int) -> void:
@@ -91,40 +112,17 @@ func _lobby_chat_update(lobby_id:int, changed_id:int, _making_change_id:int, cha
 		Steam.ChatMemberStateChange.CHAT_MEMBER_STATE_CHANGE_LEFT:
 			player_disconnected_banner.update_player_name(Steam.getFriendPersonaName(changed_id))
 			if changed_id == lobby_owner_id:
-				player_1.text = ""
-				player_2.text = ""
-				Steam.leaveLobby(lobby_id)
-				lobby_owner_id = 0
-				lobby_owner = ""
-				lobby_code_label.text = ""
-				join_lobby_code.text = ""
-				start_game_button.hide()
-			else:
-				player_2.text = ""
-			print(Steam.getFriendPersonaName(changed_id), " has left the lobby with ID: ", lobby_id)
-		Steam.ChatMemberStateChange.CHAT_MEMBER_STATE_CHANGE_DISCONNECTED:
-			player_disconnected_banner.update_player_name(Steam.getFriendPersonaName(changed_id))
-			if changed_id == lobby_owner_id:
-				player_1.text = ""
-				player_2.text = ""
-				Steam.leaveLobby(lobby_id)
-				lobby_owner_id = 0
-				lobby_owner = ""
-				lobby_code_label.text = ""
-				join_lobby_code.text = ""
-				start_game_button.hide()
+				leave_lobby(lobby_id)
 			else:
 				player_2.text = ""
 			print(Steam.getFriendPersonaName(changed_id), " has disconnected from the lobby with ID: ", lobby_id)
-
-
-func _create_lobby() -> void:
-	Steam.createLobby(Steam.LobbyType.LOBBY_TYPE_PRIVATE)
-	
-
-func _join_lobby() -> void:
-	if join_lobby_code.text:
-		NetworkManager.find_lobby.rpc_id(1, multiplayer.multiplayer_peer.get_unique_id(), join_lobby_code.text)
+		Steam.ChatMemberStateChange.CHAT_MEMBER_STATE_CHANGE_DISCONNECTED:
+			player_disconnected_banner.update_player_name(Steam.getFriendPersonaName(changed_id))
+			if changed_id == lobby_owner_id:
+				leave_lobby(lobby_id)
+			else:
+				player_2.text = ""
+			print(Steam.getFriendPersonaName(changed_id), " has disconnected from the lobby with ID: ", lobby_id)
 
 
 func _update_lobby_code(lobby_code:String) -> void:
@@ -144,7 +142,6 @@ func _lobby_game_created(_lobby_id:int, server_id:int, _server_ip:String, _port:
 		game.spawn_test_level(0)
 		return
 	load_peer_into_game(server_id)
-
 
 
 func _load_game(server_id:int) -> void:
@@ -168,13 +165,14 @@ func load_peer_into_game(server_id:int) -> void:
 	
 func _connected_to_host() -> void:
 	game.add_peer.rpc_id(1, multiplayer.multiplayer_peer.get_unique_id())
-	
+
+
 func _peer_disconnected(id:int) -> void:
 	if multiplayer.multiplayer_peer.get_unique_id() == id or id == 1:
 		multiplayer.connected_to_server.disconnect(_connected_to_host)
 		multiplayer.peer_disconnected.disconnect(_peer_disconnected)
 		show()
-	if multiplayer.is_server():
+	if multiplayer.is_server() and game.test_level.player2:
 		game.test_level.player2.queue_free()
 
 
@@ -188,12 +186,30 @@ func _process(_delta: float) -> void:
 			game.test_level.queue_free()
 		if multiplayer.multiplayer_peer:
 			multiplayer.multiplayer_peer.close()
-		player_1.text = ""
-		player_2.text = ""
-		Steam.leaveLobby(SteamworksBootstrap.steamworks.lobby_id)
-		lobby_owner_id = 0
-		lobby_owner = ""
-		lobby_code_label.text = ""
-		join_lobby_code.text = ""
-		start_game_button.hide()
+		await get_tree().create_timer(1.0).timeout
+		leave_lobby(SteamworksBootstrap.steamworks.lobby_id)
 		show()
+
+
+func leave_lobby(lobby_id:int) -> void:
+	player_1.text = ""
+	player_2.text = ""
+	Steam.leaveLobby(lobby_id)
+	lobby_owner_id = 0
+	lobby_owner = ""
+	lobby_code_label.text = ""
+	join_lobby_code.text = ""
+	start_game_button.hide()
+	leave_lobby_button.hide()
+	if Steam.getSteamID() == Steam.getLobbyOwner(SteamworksBootstrap.steamworks.lobby_id):
+		print(SteamworksBootstrap.steamworks.connected)
+		if not SteamworksBootstrap.steamworks.connected:
+			_on_multiplayer_button_pressed()
+			return
+		NetworkManager.close_lobby.rpc_id(1, SteamworksBootstrap.steamworks.lobby_code)
+	SteamworksBootstrap.steamworks.lobby_id = 0
+	SteamworksBootstrap.steamworks.lobby_code = ""
+
+
+func _on_leave_lobby_button_pressed() -> void:
+	leave_lobby(SteamworksBootstrap.steamworks.lobby_id)
